@@ -17,10 +17,9 @@ Summer Semester 2025
    6.2 [Disaster Phase](#2-disaster-phase)  
    6.3 [Trading (optional)](#3-trading-optional)  
    6.4 [Final Scoring](#4-final-scoring)
-7. [CLI Controls & Hidden Tricks](#cli-controls--hidden-tricks)
-8. [Learning Outcomes & Discussion Prompts](#learning-outcomes--discussion-prompts)
-9. [Real-World Wildfire References](#real-world-wildfire-references)
-10. [Credits & Licensing](#credits--licensing)
+7. [Learning Outcomes & Discussion Prompts](#learning-outcomes--discussion-prompts)
+8. [Real-World Wildfire References](#real-world-wildfire-references)
+9. [Credits & Licensing](#credits--licensing)
 
 ---
 
