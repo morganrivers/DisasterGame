@@ -61,7 +61,7 @@ python3 wildfire_game.py
 | **Character cards (secret)** | 5     | Elderly, Student, Parent, Pet Owner, Community Leader                |
 | **Action cards (hazards)**   | 9     | Flat Tire, Heavy Smoke, Bad Directions, etc.                         |
 | **Bonus Tokens**             | ∞     | Earned by “creating defensible space” or successful trades           |
-| **Game board** (ASCII)       | 15+1  | Spaces 0-14 + **SZ** (Safe Zone) – shortcuts (^^) and hazard squares |
+| **Game board** (ASCII)       | 15+1  | Spaces 0-14 + **SZ** (Safe Zone) – shortcuts (SC) and hazard squares |
 
 ---
 
@@ -85,7 +85,7 @@ python3 wildfire_game.py
   1. Check skip penalties / one-space limit.
   2. Roll 1d6 for movement.
   3. Optionally spend a Bonus Token (+5 spaces).
-  4. Landed on a shortcut space (^^)? Gamble (roll ≥ 5) for +3 spaces, otherwise skip next turn.
+  4. Landed on a shortcut space (SC)? Gamble (roll ≥ 5) for +3 spaces, otherwise skip next turn.
   5. Landed on a red space? Draw an Action card – decide whether to block it with the matching resource.
 
 ### 3. Trading (optional)
