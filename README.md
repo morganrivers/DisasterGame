@@ -42,7 +42,7 @@ The code runs entirely in the terminal.
 ## Quick Start
 
 ```bash
-python3 wildfire_game.py
+python3 game.py
 ````
 
 1. Enter the number of players (2-5) and their names.
