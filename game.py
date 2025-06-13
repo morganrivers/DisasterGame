@@ -429,7 +429,6 @@ class WildfireGame:
             print(f"  {pl.name}: {cards} | Tokens: {pl.tokens} | Location: {location} | Profile: {profile}")
         print("-" * 40)
 
-        print(f"\nPreparation Round {self.prep_round}/7 – {player.secret_label()}")
         print("Tokens:", player.tokens)
         print("Inventory:", ", ".join(c.name for c in player.inventory) or "(none)")
         # choice: fast path (token) or visit location
