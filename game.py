@@ -32,7 +32,8 @@ def print_prep_map(
     g1, g2, g3, g4, g5,
     a1, a2, a3, a4, a5,
     h1, h2, h3, h4, h5,
-    e1, e2, e3, e4, e5
+    e1, e2, e3, e4, e5,
+    y1, y2, y3, y4, y5
 ):
     print(f"""
                             _______________
@@ -41,10 +42,10 @@ def print_prep_map(
              |             *===============*             | 
              |                     |                     |
       ___ ___|______         ______|______         ______|______ 
-     |{p4} {p2} {p1} {p3} {p5}|      |{h4} {h2} {h1} {h3} {h5}|      |{a4} {a2} {a1} {a3} {a5}|
+     |{p4} {p2} {p1} {p3} {p5}|   {y3} |{h4} {h2} {h1} {h3} {h5}| {y1}   |{a4} {a2} {a1} {a3} {a5}|
      |   Pharmacy   |------|     HOME     |------|  Gas Station |
-     *--------------*      *--------------*      *--------------*
-             |                     |                     |            
+     *--------------*   {y4} *--------------* {y2}   *--------------*
+             |                  {y5} |                     |            
              |            _________|__________           |            
              |           |   {e4} {e2} {e1} {e3} {e5}   |          |            
              +-----------|  Electronics Store | ---------+
@@ -402,6 +403,7 @@ class WildfireGame:
         gas        = by_location("Gas Station")
         home       = by_location("Home")
         elec       = by_location("Electronics Store")
+        yard       = by_location("Yard")
 
         # Unpack as 25 arguments (order: p1..p5,g1..g5,a1..a5,h1..h5,e1..e5)
         print_prep_map(
@@ -409,7 +411,8 @@ class WildfireGame:
             *grocery,
             *gas,
             *home,
-            *elec
+            *elec,
+            *yard,
         )
 
         print(f"Preparation Round {self.prep_round}/7 – {player.secret_label()}")
@@ -438,7 +441,7 @@ class WildfireGame:
         if choice == "0":
             player.tokens += 1
             print("You reduced your fire hazard, earn a Bonus Token.")
-            player.last_location = "Fast Path"
+            player.last_location = "Yard"
 
         elif choice.isdigit() and 1 <= int(choice) <= len(LOCATIONS):
             loc = list(LOCATIONS.keys())[int(choice) - 1]
