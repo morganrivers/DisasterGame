@@ -27,6 +27,31 @@ LOCATIONS: Dict[str, List[tuple[str, int]]] = {
     "Electronics Store": [("Batteries", 1)] * 3 + [("Hand Crank Radio", 3)],
 }
 
+def print_prep_map(
+    p1, p2, p3, p4, p5,
+    g1, g2, g3, g4, g5,
+    a1, a2, a3, a4, a5,
+    h1, h2, h3, h4, h5,
+    e1, e2, e3, e4, e5
+):
+    print(f"""
+                            _______________
+                           |{g4} {g2} {g1} {g3} {g5} |
+             +-------------| Grocery Store |-------------+
+             |             *===============*             | 
+             |                     |                     |
+      ___ ___|______         ______|______         ______|______ 
+     |{p4} {p2} {p1} {p3} {p5}|      |{h4} {h2} {h1} {h3} {h5}|      |{a4} {a2} {a1} {a3} {a5}|
+     |   Pharmacy   |------|     HOME     |------|  Gas Station |
+     *--------------*      *--------------*      *--------------*
+             |                     |                     |            
+             |            _________|__________           |            
+             |           |   {e4} {e2} {e1} {e3} {e5}   |          |            
+             +-----------|  Electronics Store | ---------+
+                         *====================*
+    """)
+
+
 CHARACTER_CARDS = {
     "Elderly": ("Bandages", "First Aid Kit"),
     "Student": ("Water Bottle", "Batteries"),
@@ -357,6 +382,36 @@ class WildfireGame:
         #     print(f"  {pl.name}: {cards} | Tokens: {pl.tokens}")
         # print("-" * 40)
         self.clear()
+        # ── compact prep-phase player map ──
+        initials = [(pl.name[0] * 2).upper() for pl in self.players]
+        initials += ["  "] * (5 - len(initials))   # pad out to 5 slots
+        # --- Build minimap arguments by location for up to 5 players ---
+        def initials(player):
+            return (player.name[0]*2).upper()
+
+        def by_location(locname):
+            # Get up to 5 initials of players at this loc
+            lst = [initials(pl) if getattr(pl, "last_location", None) == locname else None for pl in self.players]
+            # filter to those at loc, keep order, pad with '  '
+            result = [i for i in lst if i]
+            result += ["  "] * (5 - len(result))
+            return result[:5]
+
+        pharmacy   = by_location("Pharmacy")
+        grocery    = by_location("Grocery Store")
+        gas        = by_location("Gas Station")
+        home       = by_location("Home")
+        elec       = by_location("Electronics Store")
+
+        # Unpack as 25 arguments (order: p1..p5,g1..g5,a1..a5,h1..h5,e1..e5)
+        print_prep_map(
+            *pharmacy,
+            *grocery,
+            *gas,
+            *home,
+            *elec
+        )
+
         print(f"Preparation Round {self.prep_round}/7 – {player.secret_label()}")
         print("-" * 40)
         print("Players' Inventories, Tokens, Locations, and Profiles:")
