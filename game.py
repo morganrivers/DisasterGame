@@ -88,9 +88,9 @@ COMBO_BONUSES = [
         ],
         "points": 8,
         "description": (
-            "A portable Go-Kit. \n"
-            "You should have this portable kit prepared plus a few more items to carry you through 3 days away from home.\n"
-            "Source: Red Cross"
+            "    A portable Go-Kit. \n"
+            "    You should have this portable kit prepared plus a few more items to carry you through 3 days away from home.\n"
+            "    Source: Red Cross"
         ),
     },
     {
@@ -106,8 +106,8 @@ COMBO_BONUSES = [
         ],
         "points": 15,
         "description": (
-            "Preparing a portable 3-day Go-Kit, plus having a place with important documents and 1 month medication in a child-proof container is recommended.\n"
-            "Source: Red Cross "
+            "    Preparing a portable 3-day Go-Kit, plus having a place with important documents and 1 month medication in a child-proof container is recommended.\n"
+            "    Source: Red Cross "
         ),
     },
     # Add more combos here later!
@@ -349,8 +349,9 @@ class WildfireGame:
         for combo in COMBO_BONUSES:
             print(f"- {combo['name']} (+{combo['points']} pts):")
             print(f"    Needs: {', '.join(combo['required'])}")
-            print(f"    {combo['description']}")
+            print(f"    {combo['description']}\n")
         print()
+
         self.preparation_phase()
         self.disaster_phase()
         self.final_scoring()
@@ -416,7 +417,7 @@ class WildfireGame:
         )
 
         print(f"Preparation Round {self.prep_round}/7 – {player.secret_label()}")
-        print("-" * 40)
+        print()
         print("Players' Inventories, Tokens, Locations, and Profiles:")
         for pl in self.players:
             cards = ", ".join(c.name for c in pl.inventory) or "(none)"
@@ -427,8 +428,22 @@ class WildfireGame:
                 f"x2/{char.multiplier_resource}"
             )
             print(f"  {pl.name}: {cards} | Tokens: {pl.tokens} | Location: {location} | Profile: {profile}")
-        print("-" * 40)
+        print()
 
+        print("\n--- Combo Bonuses Available This Game ---")
+        for combo in COMBO_BONUSES:
+            print(f"- {combo['name']}: {combo['points']} pts")
+            print(f"    Needs: {', '.join(combo['required'])}")
+            print(f"    {combo['description']}\n")
+        print("--- Items Typically Available at Each Location (if not sold out)---")
+        for loc, items in LOCATIONS.items():
+            items_list = [name for name, _ in items]
+            unique_items = sorted(set(items_list), key=items_list.index)  # preserve order, unique
+            loc_pad = 25
+            print(f"{loc+':': <{loc_pad}} {', '.join(unique_items)}\n", end="")
+            # print(f"{loc})
+        # print("-" * 40)
+        print()
         print("Tokens:", player.tokens)
         print("Inventory:", ", ".join(c.name for c in player.inventory) or "(none)")
         # choice: fast path (token) or visit location
@@ -502,6 +517,14 @@ class WildfireGame:
 
         print(f"Disaster Turn {turn_no} – {player.name}")
         print(f"Position: {player.position}/24 | Tokens:{player.tokens} | Skips:{player.skipped_turns}")
+        print("\n--- Action Cards Reference ---")
+        for (num, title, effect, blocker) in ACTION_CARDS:
+            if blocker:
+                print(f"{title}: {effect} (Prevent with {blocker})")
+            else:
+                print(f"{title}: {effect}")
+        print("-" * 40)
+
         if player.reached_safe_zone:
             input("Already safe – press Enter…")
             return
