@@ -440,7 +440,7 @@ class WildfireGame:
             print(f"    Needs: {', '.join(combo['required'])}")
             print(f"{combo['description']}\n")
         print("--- Neighborly Token ---")
-        print("   The Neighborly Token lets you leave sooner (+5 spaces ahead in disaster). It's also worth {NT_BONUS} points at the end of the game.")
+        print(f"   The Neighborly Token lets you leave sooner (+5 spaces ahead in disaster). It's also worth {NT_BONUS} points at the end of the game.")
         print()
         print("--- Items Typically Available at Each Location (if not sold out)---")
         for loc, items in LOCATIONS.items():
