@@ -107,7 +107,7 @@ COMBO_BONUSES = [
         "points": 10,
         "description": (
             "    [A portable Go-Kit + More!]\n"
-            "    Preparing a portable 3-day Go-Kit, plus having a place with important documents and 1 month medication in a child-proof container is recommended.\n"
+            "    Preparing a portable 3-day Go-Kit, plus 1 month of medication in a child-proof container and have important documents ready to go in an emergency.\n"
             "    Source: Red Cross "
         ),
     },
@@ -127,6 +127,7 @@ SHORTCUT_SPACES = {5, 9}
 NT_BONUS = 2
 COMMUNITY_LEADER_NT_BONUS = 3
 RESOURCE_POINTS = 2
+SAFE_ZONE_POINTS = 5
 
 
 # ─────────────────────────────── DATA CLASSES ───────────────────────────────
@@ -323,7 +324,11 @@ class WildfireGame:
               " ".join(shortcut_row))
 
         # Number row
-        print("Spaces:     " + " ".join(board))
+        print("Spaces:        " + " ".join(board))
+
+        # Action squares row
+        action_row = ["XX" if i in RED_SPACES else "  " for i in range(PATH_LENGTH)] + ["  "]
+        print("Action Squares:" + " ".join(action_row))
 
         # Player rows
         for p in self.players:
@@ -334,9 +339,9 @@ class WildfireGame:
             row = ["  " for _ in board]
             initials = (p.name[0] * 2).upper()
             row[pos] = initials
-            print(f"{p.name[:10]:10}: " + " ".join(row))
+            print(f"{p.name[:10]:10}    :" + " ".join(row))
 
-        print("\nSZ = Safe Zone (index 15)")
+        print(f"\nSZ = Safe Zone (index 15). +{SAFE_ZONE_POINTS} to reach the safe zone first!")
 
 
     # ────────────────────────── TERMINAL HELPERS ──────────────────────────
@@ -454,7 +459,7 @@ class WildfireGame:
         print("Tokens:", player.tokens)
         print("Inventory:", ", ".join(c.name for c in player.inventory) or "(none)")
         # choice: fast path (token) or visit location
-        print("\nChoose an action:")
+        print(f"\nChoose an action (each resource will be worth {RESOURCE_POINTS} points at end of game):")
         print("  0 – Create a defensible space by clearing flammable vegetation near your home (earn 1 Neighborly Token)")
         for idx, loc in enumerate(LOCATIONS.keys(), 1):
             print(f"  {idx} – Go to {loc} ({len(self.location_decks[loc])} cards left)")
@@ -580,16 +585,16 @@ class WildfireGame:
             if not self.first_to_safe_zone:
                 self.first_to_safe_zone = player
                 player.bonus_points += 5
-                print("Congratulations – you reached the Safe Zone first (+5 pts)!")
+                print(f"Congratulations – you reached the Safe Zone first (+{SAFE_ZONE_POINTS} pts)!")
             else:
                 print("You made it to the Safe Zone – well done.")
 
-        # --- show what each square represents ---
-        print("\nBoard Squares Legend:")
-        for idx in range(PATH_LENGTH):
-            label = "ACTION" if idx in RED_SPACES else "empty"
-            print(f"{idx:02}: {label}")
-        print("-" * 40)
+        # # --- show what each square represents ---
+        # print("\nBoard Squares Legend:")
+        # for idx in range(PATH_LENGTH):
+        #     label = "ACTION" if idx in RED_SPACES else "empty"
+        #     print(f"{idx:02}: {label}")
+        # print("-" * 40)
 
 
         input("Press Enter to pass play…")
