@@ -2,7 +2,7 @@
 """Wildfire Evacuation Game (CLI)
 
 Two-phase family game for 2-5 players:
-  • Preparation phase – visit locations for resource cards (or speed through for bonus tokens).
+  • Preparation phase – visit locations for resource cards (or speed through forNeighborly Token).
   • Disaster phase – race along a 25-space path to the Safe Zone while avoiding Action card hazards.
 
 Characters are secret and award end-game bonuses (+1 pt per specific resource and ×2 for another).
@@ -37,19 +37,19 @@ def print_prep_map(
 ):
     print(f"""
                             _______________
-                           |{g4} {g2} {g1} {g3} {g5} |
+                           /{g4} {g2} {g1} {g3} {g5} \\
              +-------------| Grocery Store |-------------+
-             |             *===============*             | 
+             |             *---------------*             | 
              |                     |                     |
       ___ ___|______         ______|______         ______|______ 
-     |{p4} {p2} {p1} {p3} {p5}|   {y3} |{h4} {h2} {h1} {h3} {h5}| {y1}   |{a4} {a2} {a1} {a3} {a5}|
+     /{p4} {p2} {p1} {p3} {p5}\\   {y3} /{h4} {h2} {h1} {h3} {h5}\\ {y1}   /{a4} {a2} {a1} {a3} {a5}\\
      |   Pharmacy   |------|     HOME     |------|  Gas Station |
      *--------------*   {y4} *--------------* {y2}   *--------------*
              |                  {y5} |                     |            
              |            _________|__________           |            
-             |           |   {e4} {e2} {e1} {e3} {e5}   |          |            
+             |           /   {e4} {e2} {e1} {e3} {e5}   \\          |            
              +-----------|  Electronics Store | ---------+
-                         *====================*
+                         *--------------------*
     """)
 
 
@@ -58,7 +58,7 @@ CHARACTER_CARDS = {
     "Student": ("Water Bottle", "Batteries"),
     "Parent": ("Extra Clothes", "Extra Cash"),
     "Pet Owner": ("Emergency Blanket", "Canned Food"),
-    "Community Leader": ("Hand Crank Radio", "Bonus Token"),  # tokens worth double
+    "Community Leader": ("Hand Crank Radio", "Neighborly Token"),  # tokens worth double
 }
 
 ACTION_CARDS = [
@@ -86,9 +86,9 @@ COMBO_BONUSES = [
             "Flashlight",
             "Canned Food",
         ],
-        "points": 8,
+        "points": 5,
         "description": (
-            "    A portable Go-Kit. \n"
+            "    [A portable Go-Kit]\n"
             "    You should have this portable kit prepared plus a few more items to carry you through 3 days away from home.\n"
             "    Source: Red Cross"
         ),
@@ -104,8 +104,9 @@ COMBO_BONUSES = [
             "Important Documents",
             "1 Month of Medication",
         ],
-        "points": 15,
+        "points": 10,
         "description": (
+            "    [A portable Go-Kit + More!]\n"
             "    Preparing a portable 3-day Go-Kit, plus having a place with important documents and 1 month medication in a child-proof container is recommended.\n"
             "    Source: Red Cross "
         ),
@@ -123,6 +124,9 @@ RED_SPACES = {4, 8, 10, 12, 13}
 # Shortcuts (optional) – adjust to fit the shorter path
 SHORTCUT_SPACES = {5, 9}
 
+NT_BONUS = 2
+COMMUNITY_LEADER_NT_BONUS = 3
+RESOURCE_POINTS = 2
 
 
 # ─────────────────────────────── DATA CLASSES ───────────────────────────────
@@ -138,7 +142,7 @@ class ResourceCard:
 class CharacterCard:
     name: str
     plus_resource: str
-    multiplier_resource: str  # or "Bonus Token" for Community Leader
+    multiplier_resource: str  # or "Neighborly Token" for Community Leader
 
 
 @dataclass
@@ -173,12 +177,12 @@ class Player:
     def total_points(self) -> int:
         pts = sum(c.points for c in self.inventory)
         # +1 per matching resource
-        pts += sum(1 for c in self.inventory if c.name == self.character.plus_resource)
+        pts += sum(RESOURCE_POINTS for c in self.inventory if c.name == self.character.plus_resource)
         # ×2 multiplier for matching resource (add its points again)
-        if self.character.multiplier_resource != "Bonus Token":
+        if self.character.multiplier_resource != "Neighborly Token":
             pts += sum(c.points for c in self.inventory if c.name == self.character.multiplier_resource)
-        # bonus tokens
-        token_value = 2 if self.character.name == "Community Leader" else 1
+        # Neighborly Tokens
+        token_value = COMMUNITY_LEADER_NT_BONUS if self.character.name == "Community Leader" else NT_BONUS
         pts += self.tokens * token_value
         # arrival bonus
         pts += self.bonus_points
@@ -347,9 +351,9 @@ class WildfireGame:
         print("=== Wildfire Ready-Set-Go ===\n")
         print("BONUS COMBOS available this game:")
         for combo in COMBO_BONUSES:
-            print(f"- {combo['name']} (+{combo['points']} pts):")
+            print(f" - {combo['name']} (+{combo['points']} pts):")
             print(f"    Needs: {', '.join(combo['required'])}")
-            print(f"    {combo['description']}\n")
+            print(f"{combo['description']}\n")
         print()
 
         self.preparation_phase()
@@ -432,9 +436,12 @@ class WildfireGame:
 
         print("\n--- Combo Bonuses Available This Game ---")
         for combo in COMBO_BONUSES:
-            print(f"- {combo['name']}: {combo['points']} pts")
+            print(f" - {combo['name']}: {combo['points']} pts")
             print(f"    Needs: {', '.join(combo['required'])}")
-            print(f"    {combo['description']}\n")
+            print(f"{combo['description']}\n")
+        print("--- Neighborly Token ---")
+        print("   The Neighborly Token lets you leave sooner (+5 spaces ahead in disaster). It's also worth {NT_BONUS} points at the end of the game.")
+        print()
         print("--- Items Typically Available at Each Location (if not sold out)---")
         for loc, items in LOCATIONS.items():
             items_list = [name for name, _ in items]
@@ -448,13 +455,13 @@ class WildfireGame:
         print("Inventory:", ", ".join(c.name for c in player.inventory) or "(none)")
         # choice: fast path (token) or visit location
         print("\nChoose an action:")
-        print("  0 – Create a defensible space by clearing flammable vegetation near your home (earn 1 Bonus Token)")
+        print("  0 – Create a defensible space by clearing flammable vegetation near your home (earn 1 Neighborly Token)")
         for idx, loc in enumerate(LOCATIONS.keys(), 1):
             print(f"  {idx} – Go to {loc} ({len(self.location_decks[loc])} cards left)")
         choice = input("Your selection: ").strip()
         if choice == "0":
             player.tokens += 1
-            print("You reduced your fire hazard, earn a Bonus Token.")
+            print("You reduced your fire hazard, earn a Neighborly Token.")
             player.last_location = "Yard"
 
         elif choice.isdigit() and 1 <= int(choice) <= len(LOCATIONS):
@@ -690,8 +697,8 @@ def choose_players() -> List[Player]:
         os.system("cls" if os.name == "nt" else "clear")
         print(f"{name}, your secret character is: {char_name}\n")
         print(f"  +1 pt for each {plus}")
-        if mult == "Bonus Token":
-            print("  Bonus Tokens are worth 2 pts each instead of 1.")
+        if mult == "Neighborly Token":
+            print(f"  Neighborly Tokens are worth {COMMUNITY_LEADER_NT_BONUS} pts each instead of {NT_BONUS}.")
         else:
             print(f"  ×2 points for each {mult}")
         input("Memorise this and press Enter (others look away)…")
