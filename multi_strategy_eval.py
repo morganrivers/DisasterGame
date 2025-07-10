@@ -119,40 +119,233 @@ class AutoGame:
         elif title=="Medical Emergency":p.skipped_turns+=2
     def play(self):
         self._prep_phase(); self._disaster_phase()
+# # ----------------------------------------------------------------------#
+# #  Batch experiment                                                     #
+# # ----------------------------------------------------------------------#
+# def run(batch_games:int=1000, players_per_game:int=4, seed:int=42):
+#     rng=random.Random(seed)
+#     results=[]
+#     strategies=["go-kit","prepper","tokens","plus","mult","random"]
+#     for profile,strategy in itertools.product(wg.CHARACTER_CARDS,strategies):
+#         wins,scores=0,[]
+#         for _ in range(batch_games):
+#             # --- build table -------------------------------------------
+#             chosen=[profile]+[c for c in wg.CHARACTER_CARDS if c!=profile][:players_per_game-1]
+#             random.shuffle(chosen)
+#             players,pols=[],[]
+#             for idx,char_name in enumerate(chosen):
+#                 plus,mult=wg.CHARACTER_CARDS[char_name]
+#                 pl=wg.Player(f"P{idx}",wg.CharacterCard(char_name,plus,mult))
+#                 players.append(pl)
+#                 pols.append(StrategyPolicy(strategy) if idx==0 else StrategyPolicy("random"))
+#             g=AutoGame(players,pols,rng); g.play()
+#             hero=players[0]; scores.append(hero.total_points())
+#             if hero is max(players,key=lambda p:p.total_points()): wins+=1
+#         results.append({"profile":profile,"strategy":strategy,
+#                         "avg_score":statistics.fmean(scores),
+#                         "win_rate":wins/batch_games})
+#     df=pd.DataFrame(results)
+#     # add delta vs random
+#     base=df[df.strategy=="random"].set_index("profile")["avg_score"]
+#     df["delta_vs_random"]=df.apply(lambda r:r.avg_score-base[r.profile],axis=1)
+#     print(df.pivot(index="profile",columns="strategy",
+#                    values=["avg_score","win_rate","delta_vs_random"]).round(2))
+# # ----------------------------------------------------------------------#
+# if __name__=="__main__":
+#     parser=argparse.ArgumentParser()
+#     parser.add_argument("--games",type=int,default=1000)
+#     args=parser.parse_args()
+#     run(batch_games=args.games)
 # ----------------------------------------------------------------------#
-#  Batch experiment                                                     #
+#  Modified batch experiment – now also collects every single score     #
 # ----------------------------------------------------------------------#
-def run(batch_games:int=1000, players_per_game:int=4, seed:int=42):
-    rng=random.Random(seed)
-    results=[]
-    strategies=["go-kit","prepper","tokens","plus","mult","random"]
-    for profile,strategy in itertools.product(wg.CHARACTER_CARDS,strategies):
-        wins,scores=0,[]
+def run(batch_games: int = 1000, players_per_game: int = 4,
+        seed: int = 42, return_scores: bool = False):
+    rng = random.Random(seed)
+    results, game_records = [], []
+    strategies = ["go-kit", "prepper", "tokens", "plus", "mult", "random"]
+
+    for profile, strategy in itertools.product(wg.CHARACTER_CARDS, strategies):
+        wins, scores = 0, []
         for _ in range(batch_games):
             # --- build table -------------------------------------------
-            chosen=[profile]+[c for c in wg.CHARACTER_CARDS if c!=profile][:players_per_game-1]
+            chosen = [profile] + [c for c in wg.CHARACTER_CARDS
+                                   if c != profile][:players_per_game-1]
             random.shuffle(chosen)
-            players,pols=[],[]
-            for idx,char_name in enumerate(chosen):
-                plus,mult=wg.CHARACTER_CARDS[char_name]
-                pl=wg.Player(f"P{idx}",wg.CharacterCard(char_name,plus,mult))
+            players, pols = [], []
+            for idx, char_name in enumerate(chosen):
+                plus, mult = wg.CHARACTER_CARDS[char_name]
+                pl = wg.Player(f"P{idx}", wg.CharacterCard(char_name, plus, mult))
                 players.append(pl)
-                pols.append(StrategyPolicy(strategy) if idx==0 else StrategyPolicy("random"))
-            g=AutoGame(players,pols,rng); g.play()
-            hero=players[0]; scores.append(hero.total_points())
-            if hero is max(players,key=lambda p:p.total_points()): wins+=1
-        results.append({"profile":profile,"strategy":strategy,
-                        "avg_score":statistics.fmean(scores),
-                        "win_rate":wins/batch_games})
-    df=pd.DataFrame(results)
-    # add delta vs random
-    base=df[df.strategy=="random"].set_index("profile")["avg_score"]
-    df["delta_vs_random"]=df.apply(lambda r:r.avg_score-base[r.profile],axis=1)
-    print(df.pivot(index="profile",columns="strategy",
-                   values=["avg_score","win_rate","delta_vs_random"]).round(2))
+                pols.append(StrategyPolicy(strategy) if idx == 0
+                             else StrategyPolicy("random"))
+            g = AutoGame(players, pols, rng)
+            g.play()
+
+            hero = players[0]
+            sc = hero.total_points()
+            scores.append(sc)
+            game_records.append(
+                {"profile": profile, "strategy": strategy, "score": sc})
+
+            if hero is max(players, key=lambda p: p.total_points()):
+                wins += 1
+
+        results.append({"profile": profile, "strategy": strategy,
+                        "avg_score": statistics.fmean(scores),
+                        "win_rate": wins / batch_games})
+
+    df = pd.DataFrame(results)
+    base = df[df.strategy == "random"].set_index("profile")["avg_score"]
+    df["delta_vs_random"] = df.apply(
+        lambda r: r.avg_score - base[r.profile], axis=1)
+
+    if return_scores:
+        df_all = pd.DataFrame(game_records)
+        return df, df_all
+    return df, None
+
+
 # ----------------------------------------------------------------------#
-if __name__=="__main__":
-    parser=argparse.ArgumentParser()
-    parser.add_argument("--games",type=int,default=1000)
-    args=parser.parse_args()
-    run(batch_games=args.games)
+#  Main entry – run sims *and* plot histograms                          #
+# ----------------------------------------------------------------------#
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--games", type=int, default=1000)
+    args = parser.parse_args()
+
+    summary, all_scores = run(batch_games=args.games, return_scores=True)
+
+    print(summary.pivot(index="profile", columns="strategy",
+                        values=["avg_score", "win_rate",
+                                "delta_vs_random"]).round(2))
+
+    # # ---------- HISTOGRAMS --------------------------------------------#
+    # import matplotlib.pyplot as plt
+
+    # # 1. Overlayed histograms by strategy (all profiles pooled)
+    # plt.figure()
+    # for strat in all_scores["strategy"].unique():
+    #     plt.hist(all_scores.loc[all_scores.strategy == strat, "score"],
+    #              bins=30, alpha=0.5, density=True, label=strat)
+    # plt.xlabel("Total points")
+    # plt.ylabel("Density")
+    # plt.title(f"Score distribution by strategy (n = {args.games})")
+    # plt.legend()
+    # plt.tight_layout()
+    # plt.show()
+
+    # # 2. For each strategy, overlay histograms of profiles
+    # for strat in all_scores["strategy"].unique():
+    #     plt.figure()
+    #     subset = all_scores[all_scores.strategy == strat]
+    #     for prof in subset["profile"].unique():
+    #         plt.hist(subset.loc[subset.profile == prof, "score"],
+    #                  bins=30, alpha=0.5, density=True, label=prof)
+    #     plt.xlabel("Total points")
+    #     plt.ylabel("Density")
+    #     plt.title(f"Profile score distribution – strategy: {strat}")
+    #     plt.legend()
+    #     plt.tight_layout()
+    #     plt.show()
+
+    
+    # # ---------- STACKED HISTOGRAMS --------------------------------------#
+    # import matplotlib.pyplot as plt
+
+    # # ------------------------------------------------------------------ #
+    # # 1. Score distributions by strategy – six rows, common X-axis        #
+    # # ------------------------------------------------------------------ #
+    # strategies = list(all_scores["strategy"].unique())
+    # fig, axes = plt.subplots(nrows=len(strategies), ncols=1,
+    #                          sharex=True, figsize=(8, 2.2 * len(strategies)))
+
+    # for ax, strat in zip(axes, strategies):
+    #     ax.hist(all_scores.loc[all_scores.strategy == strat, "score"],
+    #             bins=30, density=True, alpha=0.7)
+    #     ax.set_ylabel(strat)
+    #     ax.grid(True, linewidth=0.3, linestyle="--", alpha=0.6)
+
+    # axes[-1].set_xlabel("Total points")
+    # fig.suptitle(f"Score distribution (all profiles pooled, n = {args.games})",
+    #              y=0.92, fontsize="large")
+    # fig.tight_layout(rect=[0, 0, 1, 0.93])
+    # plt.show()
+
+    # # ------------------------------------------------------------------ #
+    # # 2. For *each* strategy, stack the five profiles vertically          #
+    # # ------------------------------------------------------------------ #
+    # profiles = list(wg.CHARACTER_CARDS.keys())
+
+    # for strat in strategies:
+    #     fig, axes = plt.subplots(nrows=len(profiles), ncols=1,
+    #                              sharex=True, figsize=(8, 2.0 * len(profiles)))
+    #     subset = all_scores[all_scores.strategy == strat]
+
+    #     for ax, prof in zip(axes, profiles):
+    #         ax.hist(subset.loc[subset.profile == prof, "score"],
+    #                 bins=30, density=True, alpha=0.7)
+    #         ax.set_ylabel(prof)
+    #         ax.grid(True, linewidth=0.3, linestyle="--", alpha=0.6)
+
+    #     axes[-1].set_xlabel("Total points")
+    #     fig.suptitle(f"Profile score distribution – strategy: {strat}",
+    #                  y=0.92, fontsize="large")
+    #     fig.tight_layout(rect=[0, 0, 1, 0.93])
+    #     plt.show()
+    # ---------- STACKED HISTOGRAMS --------------------------------------#
+    import matplotlib.pyplot as plt
+    import numpy as np   # needed only for std, mean already via pandas but matches style
+
+    # ------------------------------------------------------------------ #
+    # 1. Score distributions by strategy – six rows, common X-axis        #
+    # ------------------------------------------------------------------ #
+    strategies = list(all_scores["strategy"].unique())
+    fig, axes = plt.subplots(nrows=len(strategies), ncols=1,
+                             sharex=True, figsize=(8, 2.2 * len(strategies)))
+
+    for ax, strat in zip(axes, strategies):
+        data = all_scores.loc[all_scores.strategy == strat, "score"]
+        mu   = data.mean()
+        sig  = data.std(ddof=0)
+
+        ax.hist(data, bins=30, density=True, alpha=0.7)
+        ax.axvline(mu,                linewidth=1.2)           # mean
+        ax.axvline(mu - sig, linestyle="--", linewidth=1)      # -1σ
+        ax.axvline(mu + sig, linestyle="--", linewidth=1)      # +1σ
+        ax.set_ylabel(strat)
+        ax.grid(True, linewidth=0.3, linestyle="--", alpha=0.6)
+
+    axes[-1].set_xlabel("Total points")
+    fig.suptitle(f"Score distribution (all profiles pooled, n = {args.games})",
+                 y=0.92, fontsize="large")
+    fig.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.show()
+
+    # ------------------------------------------------------------------ #
+    # 2. For *each* strategy, stack the five profiles vertically          #
+    # ------------------------------------------------------------------ #
+    profiles = list(wg.CHARACTER_CARDS.keys())
+
+    for strat in strategies:
+        fig, axes = plt.subplots(nrows=len(profiles), ncols=1,
+                                 sharex=True, figsize=(8, 2.0 * len(profiles)))
+        subset = all_scores[all_scores.strategy == strat]
+
+        for ax, prof in zip(axes, profiles):
+            data = subset.loc[subset.profile == prof, "score"]
+            mu   = data.mean()
+            sig  = data.std(ddof=0)
+
+            ax.hist(data, bins=30, density=True, alpha=0.7)
+            ax.axvline(mu,                linewidth=1.2)           # mean
+            ax.axvline(mu - sig, linestyle="--", linewidth=1)      # -1σ
+            ax.axvline(mu + sig, linestyle="--", linewidth=1)      # +1σ
+            ax.set_ylabel(prof)
+            ax.grid(True, linewidth=0.3, linestyle="--", alpha=0.6)
+
+        axes[-1].set_xlabel("Total points")
+        fig.suptitle(f"Profile score distribution – strategy: {strat}",
+                     y=0.92, fontsize="large")
+        fig.tight_layout(rect=[0, 0, 1, 0.93])
+        plt.show()

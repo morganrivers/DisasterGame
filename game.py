@@ -20,11 +20,26 @@ from typing import Dict, List, Optional
 # ────────────────────────────── CARD DATA ──────────────────────────────
 
 LOCATIONS: Dict[str, List[tuple[str, int]]] = {
-    "Home": [("Emergency Blanket", 1)] * 3 + [("Important Documents", 5)],
-    "Grocery Store": [("Water Bottle", 1)] * 3 + [("Extra Cash", 2)] * 2 + [("Canned Food", 3)],
-    "Pharmacy": [("Bandages", 1)] * 3 + [("N95 Respirator", 2)] * 2 + [("First Aid Kit", 3)] + [("1 Month of Medication", 5)]*3,
-    "Gas Station": [("Gas Canister", 1)] * 3 + [("Flashlight", 4)] * 2 + [("Spare Tire", 3)],
-    "Electronics Store": [("Batteries", 1)] * 3 + [("Hand Crank Radio", 3)],
+    "Home": \
+          [("Emergency Blanket", 1)] * 3\
+        + [("Important Documents", 2)] * 3\
+        + [("Extra Clothes", 1)] * 3,\
+    "Grocery Store":\
+          [("Water Bottle", 1)] * 3 \
+        + [("Extra Cash", 2)] * 2 \
+        + [("Canned Food", 3)] * 3,\
+    "Pharmacy":\
+          [("N95 Respirator", 2)] * 2 \
+        + [("First Aid Kit", 1)] * 3 \
+        + [("1 Month of Medication", 3)] * 3,\
+    "Gas Station": \
+          [("Gas Canister", 1)] * 3 \
+        + [("Flashlight", 2)] * 2 \
+        + [("Spare Tire", 3)] * 1,\
+    "Electronics Store":\
+          [("Batteries", 2)] * 3  \
+        + [("Hand Crank Radio", 3)] * 1 \
+        + [("Power Bank", 1)] * 2  
 }
 
 def print_prep_map(
@@ -54,11 +69,17 @@ def print_prep_map(
 
 
 CHARACTER_CARDS = {
-    "Elderly": ("Bandages", "First Aid Kit"),
-    "Student": ("Water Bottle", "Batteries"),
-    "Parent": ("Extra Clothes", "Extra Cash"),
-    "Pet Owner": ("Emergency Blanket", "Canned Food"),
-    "Community Leader": ("Hand Crank Radio", "Neighborly Token"),  # tokens worth double
+    "Elderly": (\
+        "N95 Respirator",\
+        "First Aid Kit"),  # x2 points for each of these
+    "Student": ("Water Bottle",\
+                "Batteries"),    # x2 points for each of these
+    "Parent": ("Extra Clothes",\
+               "Extra Cash"),    # x2 points for these
+    "Pet Owner": ("Emergency Blanket",\
+                  "Canned Food"),       # x2 points for these
+    "Community Leader": ("Hand Crank Radio",\
+                         "Neighborly Token"),  # x2 points for these
 }
 
 ACTION_CARDS = [
@@ -82,11 +103,9 @@ COMBO_BONUSES = [
         "required": [
             "Water Bottle",
             "First Aid Kit",
-            "Batteries",
-            "Flashlight",
             "Canned Food",
         ],
-        "points": 5,
+        "points": 3,
         "description": (
             "    [A portable Go-Kit]\n"
             "    You should have this portable kit prepared plus a few more items to carry you through 3 days away from home.\n"
@@ -98,13 +117,11 @@ COMBO_BONUSES = [
         "required": [
             "Water Bottle",
             "First Aid Kit",
-            "Batteries",
-            "Flashlight",
             "Canned Food",
             "Important Documents",
             "1 Month of Medication",
         ],
-        "points": 10,
+        "points": 6,
         "description": (
             "    [A portable Go-Kit + More!]\n"
             "    Preparing a portable 3-day Go-Kit, plus 1 month of medication in a child-proof container and have important documents ready to go in an emergency.\n"
@@ -124,8 +141,8 @@ RED_SPACES = {4, 8, 10, 12, 13}
 # Shortcuts (optional) – adjust to fit the shorter path
 SHORTCUT_SPACES = {5, 9}
 
-NT_BONUS = 2
-COMMUNITY_LEADER_NT_BONUS = 3
+NT_BONUS = 3
+COMMUNITY_LEADER_NT_BONUS = 4
 RESOURCE_POINTS = 2
 SAFE_ZONE_POINTS = 5
 
@@ -551,7 +568,7 @@ class WildfireGame:
             player.one_space_only = False
             print("Road Block – you may move only 1 space this turn.")
         else:
-            move = self.rng.randint(1, 6)
+            move = 2*self.rng.randint(1, 3)
             print(f"You rolled a {move}.")
         # optional token spend
         if player.tokens and not player.reached_safe_zone:
