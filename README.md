@@ -5,7 +5,7 @@ Summer Semester 2025
 **Team** · Alex · Faith · Aabid · Morgan  
 
 ---
-![Disaster Game Map](https://github.com/morganrivers/DisasterGame/blob/main/assets/game_board.jpg "Disaster Game Map")
+![Disaster Game Map](https://github.com/morganrivers/DisasterGame/blob/main/assets/game_board.jpg "Disaster Game Map") 
 
 ## Table of Contents
 1. [What’s This?](#whats-this)
